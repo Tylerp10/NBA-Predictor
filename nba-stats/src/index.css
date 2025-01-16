@@ -1,0 +1,11 @@
+.gamePropBtns {
+    border: 1px solid red;
+    transition: 500ms;
+    font-size: .75rem;
+}
+
+.playerMarketBtns {
+    border: 1px solid red;
+    transition: 500ms;
+    font-size: .75rem;
+}

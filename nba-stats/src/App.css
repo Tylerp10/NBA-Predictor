@@ -1,0 +1,287 @@
+body {
+    margin: 0;
+    padding: 0
+}
+
+.background {
+    background-color: #1c1c1c;
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.05) 1%, rgba(0, 0, 0, 0) 100%);
+    color: #e0e0e0;
+    min-height: 100vh;
+    padding: 20px
+}
+.predictor-textbox {
+    max-width: 75%;
+    margin: 50px auto; 
+    padding: 25px;
+    font-family: Roboto, sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: #f0f0f0;
+    background-color: rgba(36, 36, 36, 0.95);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 
+        0 8px 12px rgba(0, 0, 0, 0.6), 
+        0 15px 25px rgba(0, 0, 0, 0.5), 
+        0 -2px 12px rgba(255, 255, 255, 0.1) inset;
+    backdrop-filter: blur(8px);
+    text-align: left;
+    position: relative;
+    transform: translateY(-5px); 
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Container for search bar */
+.search-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 20px;
+  }
+  
+  /* Search input */
+  .search-input {
+    background-color: #333; 
+    border: 2px solid #444; 
+    color: #fff;
+    font-size: 16px;
+    padding: 12px 18px;
+    border-radius: 30px;
+    width: 30%;
+    transition: all 0.3s ease;
+    outline: none;
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.1); 
+  }
+  
+  .search-input::placeholder {
+    color: #999; 
+  }
+  
+  .search-input:focus {
+    border-color: #00A1E4; 
+    box-shadow: 0 0 8px rgba(0, 161, 228, 0.2);
+  }
+  
+  /* Search button */
+  .search-button {
+    background-color: #444; 
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 30px;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.1);
+  }
+  
+  .search-button:hover {
+    background-color: #00A1E4; 
+    color: #121212; 
+  }
+  
+
+/* Loading container --------------------------------*/
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    text-align: center;
+}
+
+/* Loading text styles */
+.loading-text {
+    font-family: Roboto, sans-serif;
+    font-size: 1rem;
+    color: rgba(88, 166, 255, 0.9);
+    text-shadow: 0 0 10px rgba(88, 166, 255, 0.9), 
+                 0 0 20px rgba(255, 64, 129, 0.7);
+    animation: glowText 1.5s infinite ease-in-out;
+}
+
+/* Glow animation for text */
+@keyframes glowText {
+    0%, 100% {
+        text-shadow: 0 0 10px rgba(88, 166, 255, 0.9), 
+                     0 0 20px rgba(255, 64, 129, 0.7);
+    }
+    50% {
+        text-shadow: 0 0 20px rgba(88, 166, 255, 0.9), 
+                     0 0 40px rgba(255, 64, 129, 0.9);
+    }
+}
+
+/* Glow animation for CircularProgress */
+@keyframes glow {
+    0% {
+        box-shadow: 0 0 10px rgba(88, 166, 255, 0.4), 
+                    0 0 20px rgba(255, 64, 129, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(88, 166, 255, 0.9), 
+                    0 0 40px rgba(255, 64, 129, 0.9);
+    }
+    100% {
+        box-shadow: 0 0 10px rgba(88, 166, 255, 0.4), 
+                    0 0 20px rgba(255, 64, 129, 0.4);
+    }
+}
+
+
+/* PLAYERS PAGE --------------------------------- */
+
+.team-button, .player-button {
+  background-color: rgba(88, 166, 255, 0.15);
+  color: #58a6ff;
+  font-family: 'Roboto', sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 10px 20px;
+  border: 2px solid rgba(88, 166, 255, 0.6);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  text-shadow: 0px 2px 6px rgba(88, 166, 255, 0.4);
+}
+
+.team-button:hover, .player-button:hover {
+  background-color: #58a6ff;
+  color: #f0f0f0;
+  box-shadow: 0px 5px 15px rgba(88, 166, 255, 0.6);
+  transform: scale(1.05);
+}
+
+.team-button:focus, .player-button:focus {
+  outline: none;
+  box-shadow: 0px 5px 15px rgba(88, 166, 255, 0.8);
+}
+
+@media (max-width: 768px) {
+  .team-button, .player-button {
+    font-size: 0.9rem; 
+    padding: 8px 16px; 
+    border-radius: 6px; 
+  }
+}
+
+@media (max-width: 480px) {
+  .team-button, .player-button {
+    font-size: 0.8rem; 
+    padding: 6px 12px;
+    border-radius: 5px; 
+  }
+}
+
+/* ODDS PAGE --------------------------------- */
+
+.game-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.game-button {
+  background-color: rgba(48, 48, 60, 0.95);
+  color: #58a6ff;
+  font-weight: 600;
+  border: 1px solid rgba(88, 166, 255, 0.5);
+  padding: 10px 15px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.game-button:hover {
+  background-color: #58a6ff;
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(88, 166, 255, 0.6);
+  transform: scale(1.05);
+}
+
+.selected-game {
+  background-color: #58a6ff;
+  color: #fff;
+}
+
+.tab-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.tab-button {
+  padding: 8px 12px;
+  border: none;
+  background: linear-gradient(90deg, #8e44ad, #3498db);
+  color: #fff;
+  border-radius: 5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tab-button:hover,
+.tab-button.active {
+  background: #58a6ff;
+  box-shadow: 0 3px 8px rgba(88, 166, 255, 0.6);
+}
+
+/* HOME PAGE ------------------------------------------- */
+
+.welcome-container {
+  background: linear-gradient(135deg, #1f1f1f, #2b2b2b);
+  color: #ffffff;
+  padding: 50px;
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 1);
+  max-width: 75%;
+  margin: auto;
+  margin-top: 40px;
+  text-align: center;
+  animation: fadeIn 2s ease-in-out;
+}
+
+.welcome-title {
+  font-size: 2.8rem;
+  font-weight: bold;
+  color: #ffae42;
+  margin-bottom: 20px;
+  margin-top: 20px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.welcome-message {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  letter-spacing: 1px;
+  font-family: sans-serif;
+  color: #e0e0e0;
+  max-width: 90%;
+  margin: 0 auto;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@media (max-width: 600px) {
+  .welcome-container {
+      padding: 20px;
+  }
+  .welcome-title {
+      font-size: 1.75rem;
+  }
+  .welcome-message {
+      font-size: 0.8rem;
+      letter-spacing: 0px;
+  }
+}
