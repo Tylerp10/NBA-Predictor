@@ -16,6 +16,10 @@ FRONTEND_DOMAIN = "https://hoopscope.ca"
 
 CORS(app, resources={r"/*": {"origins": FRONTEND_DOMAIN}})
 
+@app.route('/')
+def home():
+    return jsonify({"message": "API is working!"})
+
 # TEAMS DATA-------------------------------------------
 @app.route('/teams', methods=['GET'])
 def team_selector():
@@ -91,6 +95,5 @@ def predict_player_points():
         return jsonify({"error": str(e)}), 500
 
 
-
-# if __name__ == '__main__':
-#     app.run(debug=True)
+def handler(event, context):
+    return app(event, context)
