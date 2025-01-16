@@ -1,15 +1,13 @@
 from nba_api.stats.static import players
-from nba_api.stats.endpoints import playergamelog, commonplayerinfo
-from nba_api.stats.endpoints import playernextngames, teamdashboardbygeneralsplits
+from nba_api.stats.endpoints import playergamelog, commonplayerinfo, playernextngames, teamdashboardbygeneralsplits
 from errorhandler import make_request_with_retries
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 
 def prediction_model(player_name):
     # LOOP THROUGH ALL ACTIVE PLAYERS TO FIND SELECTED PLAYER
-    all_players = players.get_active_players()
     season = '2024-25'
+    all_players = players.get_active_players()
     # player_name = "Julius Randlde"
     player = next((p for p in all_players if p['full_name'] == player_name), None)
 
@@ -111,11 +109,6 @@ def prediction_model(player_name):
     # Model initialization and training
     model = LinearRegression()
     model.fit(X_train, y_train)
-
-    # Predictions
-    # prediction_test = model.predict(X_test)
-    # mse = mean_squared_error(y_test, prediction_test)
-    # print("Mean Squared Error:", mse)
 
     prediction = points_list
     predicted_points = model.predict([prediction]).tolist()
