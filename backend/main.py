@@ -12,9 +12,9 @@ from predictionmodel import prediction_model
 app = Flask("__name__")
 CORS(app)
 
-FRONTEND_DOMAIN = "https://hoopscope.ca"
+# FRONTEND_DOMAIN = "https://hoopscope.ca"
 
-CORS(app, resources={r"/*": {"origins": FRONTEND_DOMAIN}})
+# CORS(app, resources={r"/*": {"origins": FRONTEND_DOMAIN}})
 
 # TEAMS DATA-------------------------------------------
 @app.route('/teams', methods=['GET'])
@@ -92,5 +92,5 @@ def predict_player_points():
 
 
 
-if __name__ == '__main__':
-    app.run(debug=True)
+# if __name__ == '__main__':
+#     app.run(debug=True)
