@@ -340,9 +340,9 @@ def prediction_model(player_name):
 app = Flask("__name__")
 CORS(app)
 
-# FRONTEND_DOMAIN = "https://hoopscope.ca"
+FRONTEND_DOMAIN = "https://hoopscope.ca"
 
-# CORS(app, resources={r"/*": {"origins": FRONTEND_DOMAIN}})
+CORS(app, resources={r"/*": {"origins": FRONTEND_DOMAIN}})
 
 # TEAMS DATA-------------------------------------------
 @app.route('/teams', methods=['GET'])
@@ -418,8 +418,6 @@ def predict_player_points():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-def handler(event, context):
-    return app
 
-# if __name__ == '__main__':
-#     app.run(debug=True)
+if __name__ == '__main__':
+    app.run(host="0.0.0.0", port=10000)
