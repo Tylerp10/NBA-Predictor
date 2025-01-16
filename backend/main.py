@@ -1,6 +1,6 @@
 from flask import jsonify, Flask, request
 from flask_cors import CORS
-from team_fetcher import teams
+from backend.team_fetcher import teams
 from player_fetcher import player_fetcher
 from data_fetcher import stats_fetcher
 from games_fetcher import games
