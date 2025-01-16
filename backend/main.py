@@ -90,7 +90,8 @@ def predict_player_points():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
+def handler(event, context):
+    return app
 
 # if __name__ == '__main__':
 #     app.run(debug=True)
