@@ -12,9 +12,9 @@ from predictionmodel import prediction_model
 app = Flask("__name__")
 CORS(app)
 
-FRONTEND_DOMAIN = "https://hoopscope.ca"
+# FRONTEND_DOMAIN = "https://hoopscope.ca"
 
-CORS(app, resources={r"/*": {"origins": FRONTEND_DOMAIN}})
+# CORS(app, resources={r"/*": {"origins": FRONTEND_DOMAIN}})
 
 @app.route('/')
 def home():
@@ -94,9 +94,5 @@ def predict_player_points():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
 def handler(event, context):
-    return app(event, context)
-
-if __name__ == '__main__':
-    app.run()
+    return app
