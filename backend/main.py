@@ -40,12 +40,6 @@ if response.status_code == 200:
 else:
     print("error")
 
-    import requests
-import os
-from dotenv import load_dotenv
-from flask import jsonify
-
-load_dotenv()
 
 def player_fetcher(team_id):
     api_key = os.getenv("SPORTS_RADAR_KEY")
@@ -63,12 +57,6 @@ def player_fetcher(team_id):
     else:
         return jsonify({"error": "Failed to fetch roster, {roster.status_code}"})
 
-
-
-import requests
-import os
-from dotenv import load_dotenv
-from flask import jsonify
 
 load_dotenv()
 
@@ -223,7 +211,6 @@ def player_props_fetcher(game_id, player_prop_market):
 
 from nba_api.stats.static import players
 from nba_api.stats.endpoints import playergamelog, commonplayerinfo, playernextngames, teamdashboardbygeneralsplits
-from errorhandler import make_request_with_retries
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 
