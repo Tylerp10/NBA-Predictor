@@ -210,44 +210,57 @@ from nba_api.stats.endpoints import playergamelog, commonplayerinfo, playernextn
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 
+
 def prediction_model(player_name):
+    print("Starting prediction_model for player:", player_name)
+    
+    start_time = time.time()
+
     # LOOP THROUGH ALL ACTIVE PLAYERS TO FIND SELECTED PLAYER
     season = '2024-25'
     all_players = players.get_active_players()
-    # player_name = "Julius Randlde"
+    print(f"Fetched all players in {time.time() - start_time:.2f} seconds")
     player = next((p for p in all_players if p['full_name'] == player_name), None)
 
     # GRAB PLAYER ID AND NAME 
-    if player:
-        # print(f"Player found: {player['full_name']}, {player['id']}")
-        player_id = player['id']
+    if not player:
+        print("Player not found:", player_name)
+        return {"error": "Player not found"}
+
+    print("Player found:", player['full_name'])
+    player_id = player['id']
 
     # GET PLAYER INFO 
-        player_info = make_request_with_retries(commonplayerinfo.CommonPlayerInfo, 3 ,2, player_id=player_id)
-        player_data = player_info.get_data_frames()[0]
+    start_time = time.time()
+    player_info = make_request_with_retries(commonplayerinfo.CommonPlayerInfo, 3 ,2, player_id=player_id)
+    player_data = player_info.get_data_frames()[0]
+    print(f"Fetched player info in {time.time() - start_time:.2f} seconds")
 
-        team_id = player_data.loc[0, 'TEAM_ID']
-        team_name = player_data.loc[0, 'TEAM_NAME']
-        team_abbr = player_data.loc[0, 'TEAM_ABBREVIATION']
-        # print(f"Player's Team: {team_name}, {team_abbr}, ID: {team_id}")
+        
+    team_id = player_data.loc[0, 'TEAM_ID']
+    team_name = player_data.loc[0, 'TEAM_NAME']
+    team_abbr = player_data.loc[0, 'TEAM_ABBREVIATION']
+    # print(f"Player's Team: {team_name}, {team_abbr}, ID: {team_id}")
 
     # GET PLAYER RECENT PERFORMANCES
-        player_logs = make_request_with_retries(playergamelog.PlayerGameLog, 3, 2, player_id=player_id, season=season)
-        player_logs_df = player_logs.get_data_frames()[0]
+    start_time = time.time()
+    player_logs = make_request_with_retries(playergamelog.PlayerGameLog, 3, 2, player_id=player_id, season=season)
+    player_logs_df = player_logs.get_data_frames()[0]
 
-        player_logs_df = player_logs_df.head(5)
-        recent_performances = player_logs_df[['GAME_DATE', 'MATCHUP', 'WL', 'AST', 'REB', 'PTS']].head().to_dict(orient='records')
-            
-        points = player_logs_df['PTS'].tolist()
-        points_list = [int(value) for value in points]
-            
+    player_logs_df = player_logs_df.head(5)
+    recent_performances = player_logs_df[['GAME_DATE', 'MATCHUP', 'WL', 'AST', 'REB', 'PTS']].head().to_dict(orient='records')
+    print("Recent performances:", player_logs_df[['GAME_DATE', 'PTS']].to_dict(orient='records'))
 
-    else:
-        print("Player not found")
+    points = player_logs_df['PTS'].tolist()
+    points_list = [int(value) for value in points]
+            
 
     # FETCH PLAYERS NEXT GAME 
+    start_time = time.time()
     next_games = make_request_with_retries(playernextngames.PlayerNextNGames, 3, 2, player_id=player_id, number_of_games=1)
     next_games_df = next_games.get_data_frames()[0]
+    print(f"Fetched next games in {time.time() - start_time:.2f} seconds")
+
 
     # FIGURE OUT OPPONENT TEAM NAME 
     game = next_games_df.iloc[0]
