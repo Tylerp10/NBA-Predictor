@@ -32,7 +32,7 @@ kombu==5.4.2
 MarkupSafe==3.0.2
 matplotlib==3.10.0
 nba_api==1.6.1
-numpy==2.2.1
+numpy>=1.22.2,<2.0.0
 packaging==24.2
 panadas==0.2
 pandas==2.2.3
