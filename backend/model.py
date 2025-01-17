@@ -4,15 +4,15 @@ import os
 from dotenv import load_dotenv
 import time
 load_dotenv()
-# HANDLE TIMEOUT ERRORS
-def make_request_with_retries(func, retries=3, delay=2, *args, **kwargs):
-    for _ in range(retries):
-        try:
-            return func(*args, **kwargs, timeout=60) 
-        except requests.exceptions.ReadTimeout:
-            print("Request timed out. Retrying...")
-            time.sleep(delay)
-    raise Exception("Failed after multiple retries")
+# # HANDLE TIMEOUT ERRORS
+# def make_request_with_retries(func, retries=3, delay=2, *args, **kwargs):
+#     for _ in range(retries):
+#         try:
+#             return func(*args, **kwargs, timeout=60) 
+#         except requests.exceptions.ReadTimeout:
+#             print("Request timed out. Retrying...")
+#             time.sleep(delay)
+#     raise Exception("Failed after multiple retries")
 
 nba_teams = ["76ers", "Bucks", "Bulls", "Cavaliers", "Clippers", "Celtics", "Grizzlies", "Hawks", "Heat", "Hornets", "Jazz", "Kings", "Knicks", "Lakers", "Magic", "Mavericks", "Nets", "Nuggets", "Pacers", "Pelicans", "Pistons", "Raptors", "Rockets", "Suns", "Spurs", "Thunder", "Timberwolves", "Trail Blazers", "Warriors", "Wizards"]
 
@@ -215,7 +215,7 @@ def get_player_info(player_name):
         return None
     
     player_id = int(player['id'])
-    player_info = make_request_with_retries(commonplayerinfo.CommonPlayerInfo, 3, 2, player_id=player_id)
+    player_info = commonplayerinfo.CommonPlayerInfo(player_id=player_id)
     player_data = player_info.get_data_frames()[0]
 
     return {
@@ -228,7 +228,7 @@ def get_player_info(player_name):
 def get_recent_performance(player_id):
 
     print("Fetching player performance for:", player_id)
-    player_logs = make_request_with_retries(playergamelog.PlayerGameLog, 3, 2, player_id=player_id, season='2024-25')
+    player_logs = playergamelog.PlayerGameLog(player_id=player_id, season='2024-25')
     player_logs_df = player_logs.get_data_frames()[0]
 
     player_logs_df = player_logs_df.head(5)
@@ -243,7 +243,7 @@ def get_recent_performance(player_id):
 def get_next_game(player_id, team_id):
     """Fetch player's next game details."""
     print("Fetching next game for player:", player_id)
-    next_games = make_request_with_retries(playernextngames.PlayerNextNGames, 3, 2, player_id=player_id, number_of_games=1)
+    next_games = playernextngames.PlayerNextNGames(player_id=player_id, number_of_games=1)
     next_games_df = next_games.get_data_frames()[0]
 
     if next_games_df.empty:
@@ -270,10 +270,7 @@ def get_next_game(player_id, team_id):
 def get_opponent_defense_stats(opponent_id, season='2024-25'):
 
     print("Fetching opponent defense stats for:", opponent_id)
-    team_stats = make_request_with_retries(
-        teamdashboardbygeneralsplits.TeamDashboardByGeneralSplits, 3, 2,
-        season=season, team_id=opponent_id, measure_type_detailed_defense='Opponent'
-    )
+    team_stats = teamdashboardbygeneralsplits.TeamDashboardByGeneralSplits(season=season, team_id=opponent_id,measure_type_detailed_defense='Opponent')
     team_stats_df = team_stats.get_data_frames()[0]
 
     team_total_oppg = team_stats_df['OPP_PTS']
