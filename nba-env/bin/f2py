@@ -1,5 +1,5 @@
 #!/bin/sh
-'''exec' "/Users/user/Desktop/NBA Predictor/nba-env/bin/python3.12" "$0" "$@"
+'''exec' "/Users/user/Desktop/NBA Predictor/nba-env/bin/python3" "$0" "$@"
 ' '''
 # -*- coding: utf-8 -*-
 import re

@@ -25,7 +25,7 @@ kiwisolver==1.4.8
 MarkupSafe==3.0.2
 matplotlib==3.10.0
 nba_api==1.6.1
-numpy==1.26.4
+numpy==2.2.1
 packaging==24.2
 panadas==0.2
 pandas==2.2.3
