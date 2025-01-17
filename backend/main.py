@@ -9,7 +9,7 @@ import time
 def make_request_with_retries(func, retries=3, delay=2, *args, **kwargs):
     for _ in range(retries):
         try:
-            return func(*args, **kwargs, timeout=10) 
+            return func(*args, **kwargs, timeout=30) 
         except requests.exceptions.ReadTimeout:
             print("Request timed out. Retrying...")
             time.sleep(delay)
@@ -398,52 +398,19 @@ def player_props():
 
     return player_props_fetcher(odds_id, player_prop_market)
 
-from celery import Celery
-from flask import Flask, jsonify, request
-
-from celery import Celery
-from flask import Flask, jsonify, request
-import time
-
-
-# Configure Celery
-app.config['CELERY_BROKER_URL'] = 'redis://red-cu4trg56l47c73deflng:6379'  # Use your Redis URL
-app.config['CELERY_RESULT_BACKEND'] = 'redis://red-cu4trg56l47c73deflng:6379'
-celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
-celery.conf.update(app.config)
-
-# Define Celery task
-@celery.task
-def run_prediction_task(player_name):
-    # Your existing prediction model logic here
-    return prediction_model(player_name)
-
-# Prediction route
+# PREDICTION MODEL API ----------------------------------------------
 @app.route('/predict', methods=['GET'])
 def predict_player_points():
     player_name = request.args.get("player_name")
     if not player_name:
         return jsonify({"error": "Player name is required"}), 400
 
-    # Run the prediction task asynchronously in the background
-    task = run_prediction_task.apply_async(args=[player_name])
-
-    return jsonify({
-        'task_id': task.id,
-        'status': 'Prediction is being processed.'
-    })
-
-@app.route('/result/<task_id>', methods=['GET'])
-def get_result(task_id):
-    task = run_prediction_task.AsyncResult(task_id)
-
-    if task.state == 'PENDING':
-        return jsonify({'status': 'Pending...'}), 202
-    elif task.state == 'SUCCESS':
-        return jsonify(task.result), 200
-    else:
-        return jsonify({'status': 'Failed', 'error': task.info}), 500
+    try:
+        prediction_result = prediction_model(player_name)
+        prediction_result['predicted_points'] = [round(p, 2) for p in prediction_result['predicted_points']] 
+        return jsonify(prediction_result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
-
+    app.run(host="0.0.0.0", port=10000)
