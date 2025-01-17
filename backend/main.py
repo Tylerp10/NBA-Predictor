@@ -2,9 +2,6 @@ from flask import jsonify, Flask, request
 from flask_cors import CORS
 import requests
 import os
-from dotenv import load_dotenv
-
-load_dotenv()
 
 import time
 
@@ -53,8 +50,6 @@ def player_fetcher(team_id):
     else:
         return jsonify({"error": "Failed to fetch roster, {roster.status_code}"})
 
-
-load_dotenv()
 
 def stats_fetcher(player_id):
     api_key = os.getenv("SPORTS_RADAR_KEY")
@@ -211,39 +206,32 @@ from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 
 
-def prediction_model(player_name):
+async def prediction_model(player_name):
     print("Starting prediction_model for player:", player_name)
-    
-    start_time = time.time()
 
     # LOOP THROUGH ALL ACTIVE PLAYERS TO FIND SELECTED PLAYER
     season = '2024-25'
     all_players = players.get_active_players()
-    print(f"Fetched all players in {time.time() - start_time:.2f} seconds")
+
     player = next((p for p in all_players if p['full_name'] == player_name), None)
 
     # GRAB PLAYER ID AND NAME 
     if not player:
-        print("Player not found:", player_name)
         return {"error": "Player not found"}
 
     print("Player found:", player['full_name'])
     player_id = player['id']
 
     # GET PLAYER INFO 
-    start_time = time.time()
-    player_info = make_request_with_retries(commonplayerinfo.CommonPlayerInfo, 3 ,2, player_id=player_id)
+    player_info = await make_request_with_retries(commonplayerinfo.CommonPlayerInfo, 3 ,2, player_id=player_id)
     player_data = player_info.get_data_frames()[0]
-    print(f"Fetched player info in {time.time() - start_time:.2f} seconds")
 
-        
     team_id = player_data.loc[0, 'TEAM_ID']
     team_name = player_data.loc[0, 'TEAM_NAME']
     team_abbr = player_data.loc[0, 'TEAM_ABBREVIATION']
     # print(f"Player's Team: {team_name}, {team_abbr}, ID: {team_id}")
 
     # GET PLAYER RECENT PERFORMANCES
-    start_time = time.time()
     player_logs = make_request_with_retries(playergamelog.PlayerGameLog, 3, 2, player_id=player_id, season=season)
     player_logs_df = player_logs.get_data_frames()[0]
 
@@ -256,10 +244,8 @@ def prediction_model(player_name):
             
 
     # FETCH PLAYERS NEXT GAME 
-    start_time = time.time()
     next_games = make_request_with_retries(playernextngames.PlayerNextNGames, 3, 2, player_id=player_id, number_of_games=1)
     next_games_df = next_games.get_data_frames()[0]
-    print(f"Fetched next games in {time.time() - start_time:.2f} seconds")
 
 
     # FIGURE OUT OPPONENT TEAM NAME 
@@ -415,18 +401,17 @@ def player_props():
 
 # PREDICTION MODEL API ----------------------------------------------
 @app.route('/predict', methods=['GET'])
-def predict_player_points():
+async def predict_player_points():
     player_name = request.args.get("player_name")
     if not player_name:
         return jsonify({"error": "Player name is required"}), 400
 
     try:
-        prediction_result = prediction_model(player_name)
+        prediction_result = await prediction_model(player_name)
         prediction_result['predicted_points'] = [round(p, 2) for p in prediction_result['predicted_points']] 
         return jsonify(prediction_result)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=10000)
