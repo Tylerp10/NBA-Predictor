@@ -414,25 +414,21 @@ def player_props():
 #     except Exception as e:
 #         return jsonify({"error": str(e)}), 500
 
-@app.route("/predict", methods=["GET", "POST"])
-def predict():
-    if request.method == "GET":
-        player_name = request.args.get("player_name")
-        if not player_name:
-            return jsonify({"error": "Missing player_name"}), 400
-        
-        data = {"player_name": player_name}  # Convert query param to JSON format
-    else:
-        data = request.get_json()
-    
-    future = executor.submit(prediction_model, data)
+@app.route('/predict', methods=['GET'])
+def predict_player_points():
+    player_name = request.args.get("player_name")
+    if not player_name:
+        return jsonify({"error": "Player name is required"}), 400
 
     try:
-        result = future.result(timeout=10)
+        # Ensure that player_name is a string and not a dictionary
+        print(f"Received player_name: {player_name}")
+        prediction_result = prediction_model(player_name)
+        prediction_result['predicted_points'] = [round(p, 2) for p in prediction_result['predicted_points']] 
+        return jsonify(prediction_result)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-    return jsonify(result)
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=10000)
