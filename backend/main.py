@@ -9,17 +9,14 @@ load_dotenv()
 import time
 
 # HANDLE TIMEOUT ERRORS
-def make_request_with_retries(func, max_retries=3, delay=2, *args, **kwargs):
-    retries = 0
-    while retries < max_retries:
+def make_request_with_retries(func, retries=3, delay=2, *args, **kwargs):
+    for _ in range(retries):
         try:
-            return func(*args, **kwargs)
-        except Exception as e:
-            retries += 1
-            delay = delay * (2 ** retries) 
-            print(f"Request failed ({e}), retrying in {delay} seconds...")
+            return func(*args, **kwargs, timeout=10) 
+        except requests.exceptions.ReadTimeout:
+            print("Request timed out. Retrying...")
             time.sleep(delay)
-    raise Exception(f"All {max_retries} retries failed.")
+    raise Exception("Failed after multiple retries")
 
 nba_teams = ["76ers", "Bucks", "Bulls", "Cavaliers", "Clippers", "Celtics", "Grizzlies", "Hawks", "Heat", "Hornets", "Jazz", "Kings", "Knicks", "Lakers", "Magic", "Mavericks", "Nets", "Nuggets", "Pacers", "Pelicans", "Pistons", "Raptors", "Rockets", "Suns", "Spurs", "Thunder", "Timberwolves", "Trail Blazers", "Warriors", "Wizards"]
 
