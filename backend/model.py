@@ -205,86 +205,89 @@ from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 
 
-def prediction_model(player_name):
-    print("Starting prediction_model for player:", player_name)
+def get_player_info(player_name):
 
-    # LOOP THROUGH ALL ACTIVE PLAYERS TO FIND SELECTED PLAYER
-    season = '2024-25'
+    print("Fetching player info for:", player_name)
     all_players = players.get_active_players()
-
     player = next((p for p in all_players if p['full_name'] == player_name), None)
-
-    # GRAB PLAYER ID AND NAME 
+    
     if not player:
-        return {"error": "Player not found"}
-
-    print("Player found:", player['full_name'])
-    player_id = player['id']
-
-    # GET PLAYER INFO 
-    player_info = make_request_with_retries(commonplayerinfo.CommonPlayerInfo, 3 ,2, player_id=player_id)
+        return None
+    
+    player_id = int(player['id'])
+    player_info = make_request_with_retries(commonplayerinfo.CommonPlayerInfo, 3, 2, player_id=player_id)
     player_data = player_info.get_data_frames()[0]
 
-    team_id = player_data.loc[0, 'TEAM_ID']
-    team_name = player_data.loc[0, 'TEAM_NAME']
-    team_abbr = player_data.loc[0, 'TEAM_ABBREVIATION']
-    # print(f"Player's Team: {team_name}, {team_abbr}, ID: {team_id}")
+    return {
+        "player_id": player_id,
+        "team_id": int(player_data.loc[0, 'TEAM_ID']),
+        "team_name": str(player_data.loc[0, 'TEAM_NAME']),
+        "team_abbr": str(player_data.loc[0, 'TEAM_ABBREVIATION'])
+    }
 
-    # GET PLAYER RECENT PERFORMANCES
-    player_logs = make_request_with_retries(playergamelog.PlayerGameLog, 3, 2, player_id=player_id, season=season)
+def get_recent_performance(player_id):
+
+    print("Fetching player performance for:", player_id)
+    player_logs = make_request_with_retries(playergamelog.PlayerGameLog, 3, 2, player_id=player_id, season='2024-25')
     player_logs_df = player_logs.get_data_frames()[0]
 
     player_logs_df = player_logs_df.head(5)
-    recent_performances = player_logs_df[['GAME_DATE', 'MATCHUP', 'WL', 'AST', 'REB', 'PTS']].head().to_dict(orient='records')
-    print("Recent performances:", player_logs_df[['GAME_DATE', 'PTS']].to_dict(orient='records'))
-
     points = player_logs_df['PTS'].tolist()
     points_list = [int(value) for value in points]
-            
 
-    # FETCH PLAYERS NEXT GAME 
+    return {
+        "recent_performances": player_logs_df[['GAME_DATE', 'MATCHUP', 'WL', 'AST', 'REB', 'PTS']].to_dict(orient='records'),
+        "points_list": points_list
+    }
+            
+def get_next_game(player_id, team_id):
+    """Fetch player's next game details."""
+    print("Fetching next game for player:", player_id)
     next_games = make_request_with_retries(playernextngames.PlayerNextNGames, 3, 2, player_id=player_id, number_of_games=1)
     next_games_df = next_games.get_data_frames()[0]
 
+    if next_games_df.empty:
+        return None
 
-    # FIGURE OUT OPPONENT TEAM NAME 
     game = next_games_df.iloc[0]
     if game["HOME_TEAM_ID"] == team_id:
-        opponent_id = game["VISITOR_TEAM_ID"]
-        opponent_name = game["VISITOR_TEAM_NAME"]
-        player_team = game["HOME_TEAM_NAME"]
+        opponent_id = int(game["VISITOR_TEAM_ID"])
+        opponent_name = str(game["VISITOR_TEAM_NAME"])
+        player_team = str(game["HOME_TEAM_NAME"])
     else:
-        opponent_id = game["HOME_TEAM_ID"]
-        opponent_name = game["HOME_TEAM_NAME"]
-        player_team = game["VISITOR_TEAM_NAME"]
+        opponent_id = int(game["HOME_TEAM_ID"])
+        opponent_name = str(game["HOME_TEAM_NAME"])
+        player_team = str(game["VISITOR_TEAM_NAME"])
 
-    game_date = game['GAME_DATE']
-
-    # print(f"Opponent ID is {opponent_id}, {opponent_name}, {game['GAME_DATE']}")
+    return {
+        "opponent_id": opponent_id,
+        "opponent_name": opponent_name,
+        "game_date": str(game['GAME_DATE']),
+        "player_team": player_team
+    }
 
     # GET OPPONENT DEFENSIVE STATS 
-    team_stats = make_request_with_retries(teamdashboardbygeneralsplits.TeamDashboardByGeneralSplits, 3, 2,
-        season=season,
-        team_id=opponent_id, 
-        measure_type_detailed_defense='Opponent'
-    )
+def get_opponent_defense_stats(opponent_id, season='2024-25'):
 
+    print("Fetching opponent defense stats for:", opponent_id)
+    team_stats = make_request_with_retries(
+        teamdashboardbygeneralsplits.TeamDashboardByGeneralSplits, 3, 2,
+        season=season, team_id=opponent_id, measure_type_detailed_defense='Opponent'
+    )
     team_stats_df = team_stats.get_data_frames()[0]
 
-    # CALCULATE AMOUNT OF POINTS OPPONENT ALLOWS PER GAME  
     team_total_oppg = team_stats_df['OPP_PTS']
     team_gp = team_stats_df['GP']
-    team_oppg = team_total_oppg/team_gp
-    opponent_allowed_points = team_oppg.iloc[0]
-
-    # print(f'{opponent_name} allows {opponent_allowed_points} per game')
+    team_oppg = team_total_oppg / team_gp
+    return team_oppg.iloc[0]
 
 
     # PREDICTION MODEL 
-
-    points_list.append(int(opponent_allowed_points))
-
-    # SAMPLE DATA - POINTS FROM PLAYERS PAST 5 GAMES + NEXT OPPONENT ALLOWED PPG
+def run_prediction(points_list, opponent_allowed_points):
+    """Train Linear Regression model and predict."""
+    print("Running prediction model...")
+    
+    # Sample training data
     X = [
         [25, 28, 22, 24, 30, 112],
         [15, 18, 12, 20, 22, 105],
@@ -302,30 +305,46 @@ def prediction_model(player_name):
         [10, 12, 8, 11, 9, 100],
         [20, 25, 22, 18, 26, 114]
     ]
-    # ACTUAL SCORES
-    y = [
-        27, 19, 43, 10, 24, 29, 21, 41, 12, 26, 29, 21, 45, 11, 25
-    ]
+    y = [27, 19, 43, 10, 24, 29, 21, 41, 12, 26, 29, 21, 45, 11, 25]
 
-    # Splitting data
+    # Train model
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-    # Model initialization and training
     model = LinearRegression()
     model.fit(X_train, y_train)
 
-    prediction = points_list
-    predicted_points = model.predict([prediction]).tolist()
-    # print(f'Predicted points: {predicted_points}')
+    prediction_input = points_list + [int(opponent_allowed_points)]
+    predicted_points = model.predict([prediction_input]).tolist()
 
-    return  {
+    return predicted_points
+
+def prediction_model(player_name):
+
+    print("Starting prediction_model for player:", player_name)
+
+    player_info = get_player_info(player_name)
+    if not player_info:
+        return {"error": "Player not found"}
+
+    performance_data = get_recent_performance(player_info["player_id"])
+    if not performance_data:
+        return {"error": "Could not retrieve player performance data"}
+
+    next_game = get_next_game(player_info["player_id"], player_info["team_id"])
+    if not next_game:
+        return {"error": "No upcoming games found"}
+
+    opponent_allowed_points = get_opponent_defense_stats(next_game["opponent_id"])
+    if opponent_allowed_points is None:
+        return {"error": "Could not retrieve opponent defensive stats"}
+
+    predicted_points = run_prediction(performance_data["points_list"], opponent_allowed_points)
+
+    return {
         "player_name": player_name,
-        "player_team": player_team,
-        "recent_performance": recent_performances,
-        "next_opponent": opponent_name,
-        "game_date": game_date,
+        "player_team": next_game["player_team"],
+        "recent_performance": performance_data["recent_performances"],
+        "next_opponent": next_game["opponent_name"],
+        "game_date": next_game["game_date"],
         "opponent_allowed_points": opponent_allowed_points,
         "predicted_points": predicted_points
     }
-
-
