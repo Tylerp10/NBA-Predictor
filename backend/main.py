@@ -9,7 +9,7 @@ import time
 def make_request_with_retries(func, retries=3, delay=2, *args, **kwargs):
     for _ in range(retries):
         try:
-            return func(*args, **kwargs, timeout=30) 
+            return func(*args, **kwargs, timeout=60) 
         except requests.exceptions.ReadTimeout:
             print("Request timed out. Retrying...")
             time.sleep(delay)
