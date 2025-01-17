@@ -2,9 +2,10 @@ from flask import jsonify, Flask, request
 from flask_cors import CORS
 import requests
 import os
-
+from dotenv import load_dotenv
+from concurrent.futures import ThreadPoolExecutor  # Step 1
 import time
-
+load_dotenv()
 # HANDLE TIMEOUT ERRORS
 def make_request_with_retries(func, retries=3, delay=2, *args, **kwargs):
     for _ in range(retries):
@@ -333,6 +334,7 @@ def prediction_model(player_name):
 
 
 app = Flask("__name__")
+executor = ThreadPoolExecutor(max_workers=3)  # Step 2
 CORS(app)
 
 FRONTEND_DOMAIN = "https://hoopscope.ca"
@@ -399,18 +401,32 @@ def player_props():
     return player_props_fetcher(odds_id, player_prop_market)
 
 # PREDICTION MODEL API ----------------------------------------------
-@app.route('/predict', methods=['GET'])
-def predict_player_points():
-    player_name = request.args.get("player_name")
-    if not player_name:
-        return jsonify({"error": "Player name is required"}), 400
+# @app.route('/predict', methods=['GET'])
+# def predict_player_points():
+#     player_name = request.args.get("player_name")
+#     if not player_name:
+#         return jsonify({"error": "Player name is required"}), 400
+
+#     try:
+#         prediction_result = prediction_model(player_name)
+#         prediction_result['predicted_points'] = [round(p, 2) for p in prediction_result['predicted_points']] 
+#         return jsonify(prediction_result)
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 500
+
+@app.route("/predict", methods=["POST"])  # Step 3
+def predict():
+    data = request.get_json()
+
+    # Run the prediction in a background thread
+    future = executor.submit(prediction_model, data)
 
     try:
-        prediction_result = prediction_model(player_name)
-        prediction_result['predicted_points'] = [round(p, 2) for p in prediction_result['predicted_points']] 
-        return jsonify(prediction_result)
+        result = future.result(timeout=10)  # Timeout in seconds
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+    return jsonify(result)
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=10000)
