@@ -206,7 +206,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 
 
-async def prediction_model(player_name):
+def prediction_model(player_name):
     print("Starting prediction_model for player:", player_name)
 
     # LOOP THROUGH ALL ACTIVE PLAYERS TO FIND SELECTED PLAYER
@@ -223,7 +223,7 @@ async def prediction_model(player_name):
     player_id = player['id']
 
     # GET PLAYER INFO 
-    player_info = await make_request_with_retries(commonplayerinfo.CommonPlayerInfo, 3 ,2, player_id=player_id)
+    player_info = make_request_with_retries(commonplayerinfo.CommonPlayerInfo, 3 ,2, player_id=player_id)
     player_data = player_info.get_data_frames()[0]
 
     team_id = player_data.loc[0, 'TEAM_ID']
@@ -398,20 +398,52 @@ def player_props():
 
     return player_props_fetcher(odds_id, player_prop_market)
 
+from celery import Celery
+from flask import Flask, jsonify, request
 
-# PREDICTION MODEL API ----------------------------------------------
+from celery import Celery
+from flask import Flask, jsonify, request
+import time
+
+
+# Configure Celery
+app.config['CELERY_BROKER_URL'] = 'redis://red-cu4trg56l47c73deflng:6379'  # Use your Redis URL
+app.config['CELERY_RESULT_BACKEND'] = 'redis://red-cu4trg56l47c73deflng:6379'
+celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
+celery.conf.update(app.config)
+
+# Define Celery task
+@celery.task
+def run_prediction_task(player_name):
+    # Your existing prediction model logic here
+    return prediction_model(player_name)
+
+# Prediction route
 @app.route('/predict', methods=['GET'])
-async def predict_player_points():
+def predict_player_points():
     player_name = request.args.get("player_name")
     if not player_name:
         return jsonify({"error": "Player name is required"}), 400
 
-    try:
-        prediction_result = await prediction_model(player_name)
-        prediction_result['predicted_points'] = [round(p, 2) for p in prediction_result['predicted_points']] 
-        return jsonify(prediction_result)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    # Run the prediction task asynchronously in the background
+    task = run_prediction_task.apply_async(args=[player_name])
+
+    return jsonify({
+        'task_id': task.id,
+        'status': 'Prediction is being processed.'
+    })
+
+@app.route('/result/<task_id>', methods=['GET'])
+def get_result(task_id):
+    task = run_prediction_task.AsyncResult(task_id)
+
+    if task.state == 'PENDING':
+        return jsonify({'status': 'Pending...'}), 202
+    elif task.state == 'SUCCESS':
+        return jsonify(task.result), 200
+    else:
+        return jsonify({'status': 'Failed', 'error': task.info}), 500
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=10000)
+    app.run(debug=True)
+
