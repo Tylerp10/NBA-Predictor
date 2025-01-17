@@ -414,15 +414,21 @@ def player_props():
 #     except Exception as e:
 #         return jsonify({"error": str(e)}), 500
 
-@app.route("/predict", methods=["POST"])  # Step 3
+@app.route("/predict", methods=["GET", "POST"])
 def predict():
-    data = request.get_json()
-
-    # Run the prediction in a background thread
+    if request.method == "GET":
+        player_name = request.args.get("player_name")
+        if not player_name:
+            return jsonify({"error": "Missing player_name"}), 400
+        
+        data = {"player_name": player_name}  # Convert query param to JSON format
+    else:
+        data = request.get_json()
+    
     future = executor.submit(prediction_model, data)
 
     try:
-        result = future.result(timeout=10)  # Timeout in seconds
+        result = future.result(timeout=10)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
