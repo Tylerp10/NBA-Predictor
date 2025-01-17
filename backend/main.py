@@ -1,6 +1,5 @@
 from flask import jsonify, Flask, request
 from flask_cors import CORS
-
 import requests
 import os
 from dotenv import load_dotenv
@@ -17,7 +16,7 @@ def make_request_with_retries(func, max_retries=3, delay=2, *args, **kwargs):
             return func(*args, **kwargs)
         except Exception as e:
             retries += 1
-            delay = delay * (2 ** retries)  # Exponential backoff
+            delay = delay * (2 ** retries) 
             print(f"Request failed ({e}), retrying in {delay} seconds...")
             time.sleep(delay)
     raise Exception(f"All {max_retries} retries failed.")
@@ -380,11 +379,11 @@ def game_odds():
 
     odds_id = request.args.get("odds_id")
     if not odds_id:
-        return jsonify({'Error'})
+        return jsonify({'Error': 'Odds ID required'})
     
     market_id = request.args.get("market_id")
     if not market_id:
-        return jsonify({'Error'})
+        return jsonify({'Error': 'Market ID required'})
     
     return odds_fetcher(odds_id, market_id)
 
@@ -394,11 +393,11 @@ def player_props():
 
     odds_id = request.args.get("odds_id")
     if not odds_id:
-        return jsonify({"Error"})
+        return jsonify({"Error": 'Odds ID required'})
     
     player_prop_market = request.args.get("player_prop_market")
     if not player_prop_market:
-        return jsonify({"Error"})
+        return jsonify({"Error": 'Market ID required'})
     
 
     return player_props_fetcher(odds_id, player_prop_market)
