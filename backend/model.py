@@ -213,8 +213,8 @@ def get_player_info(player_name):
     
     if not player:
         return None
-    
     player_id = int(player['id'])
+    print(player_id)
     player_info = commonplayerinfo.CommonPlayerInfo(player_id=player_id)
     player_data = player_info.get_data_frames()[0]
 
