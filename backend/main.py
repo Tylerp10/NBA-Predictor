@@ -1,6 +1,6 @@
 from flask import jsonify, Flask, request
 from flask_cors import CORS
-from model import teams, player_fetcher, stats_fetcher, games, odds_fetcher, player_props_fetcher, prediction_model, run_prediction, get_opponent_defense_stats, get_next_game, get_recent_performance, get_player_info
+from model import teams, player_fetcher, stats_fetcher, games, odds_fetcher, player_props_fetcher, prediction_model, run_prediction, get_opponent_defense_stats, get_next_game, get_recent_performance, get_player_info, get_info
 
 
 app = Flask("__name__")
@@ -69,6 +69,12 @@ def player_props():
 
     return player_props_fetcher(odds_id, player_prop_market)
 
+
+@app.route('/info', methods=['GET'])
+def info():
+    player_id = request.args.get('player_id')
+    info = get_info(player_id)
+    return jsonify(info)
 
 @app.route('/player_info', methods=['GET'])
 def player_info():

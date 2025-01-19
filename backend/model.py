@@ -204,6 +204,17 @@ from nba_api.stats.endpoints import playergamelog, commonplayerinfo, playernextn
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 
+def get_info(player_id):
+    player_info = commonplayerinfo.CommonPlayerInfo(player_id=player_id)
+    player_data = player_info.get_data_frames()[0]
+
+    return {
+        "player_id": player_id,
+        "team_id": int(player_data.loc[0, 'TEAM_ID']),
+        "team_name": str(player_data.loc[0, 'TEAM_NAME']),
+        "team_abbr": str(player_data.loc[0, 'TEAM_ABBREVIATION'])
+    }
+
 
 def get_player_info(player_name):
 
