@@ -1,7 +1,7 @@
 from flask import jsonify, Flask, request
 from flask_cors import CORS
 from model import teams, player_fetcher, stats_fetcher, games, odds_fetcher, player_props_fetcher, prediction_model, run_prediction, get_opponent_defense_stats, get_next_game, get_recent_performance, get_player_info
-
+from tester import import_name
 
 app = Flask("__name__")
 CORS(app)
@@ -132,6 +132,13 @@ def predict():
 
     prediction = prediction_model(player_name)
     return jsonify(prediction)
+
+@app.route('/info', methods=['GET'])
+def info():
+    player_name = request.args.get('name')
+
+    player_info = import_name(player_name)
+    return jsonify(player_info)
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=10000)
