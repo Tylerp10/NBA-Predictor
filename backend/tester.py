@@ -11,7 +11,7 @@ def import_name(name):
     }
 
     response = requests.get(url, headers=headers, params=querystring)
-
+    return response
     print(response.json())
 
 import_name('james')
