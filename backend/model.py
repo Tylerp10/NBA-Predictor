@@ -214,6 +214,10 @@ from nba_api.stats.endpoints import playergamelog, commonplayerinfo, playernextn
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 
+proxy = {
+    'http': 'http://134.209.23.180:8888',
+    'https': 'https://134.209.23:8888',
+}
 
 def get_player_info(player_name):
 
@@ -231,7 +235,7 @@ def get_player_info(player_name):
     
     try:
         # Make the request to the NBA stats endpoint
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, proxies=proxy)
         
         # Raise exception if request failed
         response.raise_for_status()
