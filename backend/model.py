@@ -3,6 +3,16 @@ import requests
 import os
 from dotenv import load_dotenv
 import time
+
+headers = {
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+    "Accept": "application/json, text/plain, */*",
+    "Connection": "keep-alive",
+    "Host": "stats.nba.com",
+    "Origin": "https://www.nba.com",
+    "Referer": "https://www.nba.com/",
+}
+
 load_dotenv()
 # # HANDLE TIMEOUT ERRORS
 # def make_request_with_retries(func, retries=3, delay=2, *args, **kwargs):
@@ -215,15 +225,48 @@ def get_player_info(player_name):
         return None
     player_id = int(player['id'])
     print(player_id)
-    player_info = commonplayerinfo.CommonPlayerInfo(player_id=player_id)
-    player_data = player_info.get_data_frames()[0]
 
-    return {
-        "player_id": player_id,
-        "team_id": int(player_data.loc[0, 'TEAM_ID']),
-        "team_name": str(player_data.loc[0, 'TEAM_NAME']),
-        "team_abbr": str(player_data.loc[0, 'TEAM_ABBREVIATION'])
-    }
+
+    url = f"https://stats.nba.com/stats/commonplayerinfo?PlayerID={player_id}"
+    
+    try:
+        # Make the request to the NBA stats endpoint
+        response = requests.get(url, headers=headers)
+        
+        # Raise exception if request failed
+        response.raise_for_status()
+        
+        # Parse the JSON data
+        data = response.json()
+        
+        # Extract player data (adjust the path based on the API response structure)
+        player_data = data['resultSets'][0]['rowSet'][0]  # This assumes rowSet has the player data
+        
+        # Create the result dictionary
+        return {
+            "player_id": player_id,
+            "team_id": int(player_data[6]),  # Adjust index based on actual response
+            "team_name": str(player_data[8]),  # Adjust index based on actual response
+            "team_abbr": str(player_data[9])  # Adjust index based on actual response
+        }
+        
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching player info: {e}")
+        return None
+
+
+
+
+
+    # player_info = commonplayerinfo.CommonPlayerInfo(player_id=player_id)
+    # player_data = player_info.get_data_frames()[0]
+
+    # return {
+    #     "player_id": player_id,
+    #     "team_id": int(player_data.loc[0, 'TEAM_ID']),
+    #     "team_name": str(player_data.loc[0, 'TEAM_NAME']),
+    #     "team_abbr": str(player_data.loc[0, 'TEAM_ABBREVIATION'])
+    # }
 
 def get_recent_performance(player_id):
 
