@@ -3,7 +3,7 @@ import requests
 def import_name(name):
     url = "https://api-nba-v1.p.rapidapi.com/players"
 
-    querystring = {"search": {name}}
+    querystring = {"search": name}
 
     headers = {
         "x-rapidapi-key": "b7ff177dc6msh0354e8083416a13p185307jsndfdc4d061346",
@@ -11,7 +11,7 @@ def import_name(name):
     }
 
     response = requests.get(url, headers=headers, params=querystring)
-    return response
-    print(response.json())
+
+    return response.json()
 
 import_name('james')
