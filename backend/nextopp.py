@@ -1,6 +1,5 @@
 import requests
 from datetime import datetime, UTC
-from teamid import team_name
 
 def get_next_opp(team_name):
     API_KEY = "e66cbb3731f14beda2b155087756ad48"
