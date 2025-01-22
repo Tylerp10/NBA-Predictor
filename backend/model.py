@@ -227,47 +227,6 @@ def get_player_info(player_name):
     print(player_id)
 
 
-    url = f"https://stats.nba.com/stats/commonplayerinfo?PlayerID={player_id}"
-    
-    try:
-        # Make the request to the NBA stats endpoint
-        response = requests.get(url, headers=headers, timeout=60)
-        
-        # Raise exception if request failed
-        response.raise_for_status()
-        
-        # Parse the JSON data
-        data = response.json()
-        
-        # Extract player data (adjust the path based on the API response structure)
-        player_data = data['resultSets'][0]['rowSet'][0]  # This assumes rowSet has the player data
-        
-        # Create the result dictionary
-        return {
-            "player_id": player_id,
-            "team_id": int(player_data[6]),  # Adjust index based on actual response
-            "team_name": str(player_data[8]),  # Adjust index based on actual response
-            "team_abbr": str(player_data[9])  # Adjust index based on actual response
-        }
-        
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching player info: {e}")
-        return None
-
-
-
-
-
-    # player_info = commonplayerinfo.CommonPlayerInfo(player_id=player_id)
-    # player_data = player_info.get_data_frames()[0]
-
-    # return {
-    #     "player_id": player_id,
-    #     "team_id": int(player_data.loc[0, 'TEAM_ID']),
-    #     "team_name": str(player_data.loc[0, 'TEAM_NAME']),
-    #     "team_abbr": str(player_data.loc[0, 'TEAM_ABBREVIATION'])
-    # }
-
 def get_recent_performance(player_id):
 
     print("Fetching player performance for:", player_id)
@@ -354,8 +313,9 @@ def run_prediction(points_list, opponent_allowed_points):
 
     prediction_input = points_list + [int(opponent_allowed_points)]
     predicted_points = model.predict([prediction_input]).tolist()
-
+    print(predicted_points)
     return predicted_points
+
 
 def prediction_model(player_name):
 

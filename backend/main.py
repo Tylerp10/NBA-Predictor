@@ -2,6 +2,7 @@ from flask import jsonify, Flask, request
 from flask_cors import CORS
 from model import teams, player_fetcher, stats_fetcher, games, odds_fetcher, player_props_fetcher, prediction_model, run_prediction, get_opponent_defense_stats, get_next_game, get_recent_performance, get_player_info
 from tester import import_name
+from nextopp import get_next_opp
 
 app = Flask("__name__")
 CORS(app)
@@ -70,18 +71,14 @@ def player_props():
     return player_props_fetcher(odds_id, player_prop_market)
 
 
-
-@app.route('/player_info', methods=['GET'])
-def player_info():
-    player_name = request.args.get('player_name')
-    if not player_name:
-        return jsonify({"error": "player_name is required"}), 400
-
-    player_info = get_player_info(player_name)
-    if not player_info:
-        return jsonify({"error": "Player not found"}), 404
-
-    return jsonify(player_info)
+@app.route('/next_opponent', methods=['GET'])
+def next_opp():
+    team_abbr = request.args.get('team_abbr')
+    if not team_abbr:
+        return jsonify({"error": "player_id is required"}), 400
+    
+    next_opponent = get_next_opp(team_abbr)
+    return jsonify(next_opponent)
 
 
 @app.route('/player_performance', methods=['GET'])
@@ -132,6 +129,7 @@ def predict():
 
     prediction = prediction_model(player_name)
     return jsonify(prediction)
+
 
 @app.route('/info', methods=['GET'])
 def info():
