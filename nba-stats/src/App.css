@@ -32,6 +32,28 @@ body {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
+.player-search-error {
+  background-color: rgba(255, 0, 0, 0.1); /* Light red background */
+  color: #ff4d4d; /* Brighter red text */
+  padding: 12px 16px;
+  /* border-left: 4px solid #ff4d4d; Red accent border */
+  border-radius: 6px;
+  margin-top: 10px;
+  text-align: center;
+  font-weight: 500;
+  box-shadow: 0 4px 10px rgba(255, 0, 0, 0.2);
+}
+
+.player-search-error p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.player-search-error strong {
+  font-weight: 700;
+}
+
+
 /* Container for search bar */
 .search-container {
     display: flex;

@@ -6,7 +6,7 @@ from player_recents import get_player_prediction, search_players
 app = Flask("__name__")
 
 
-FRONTEND_DOMAIN = "https://hoopscope.netlify.app"
+FRONTEND_DOMAIN = "https://hoopscope.app"
 
 CORS(app, resources={r"/*": {"origins": FRONTEND_DOMAIN}})
 

@@ -13,7 +13,7 @@ function Odds() {
     const [currentGameProp, setCurrentGameProp] = useState("h2h")
     const [currentPlayerMarket, setCurrentPlayerMarket] = useState("player_points")
     const [selectedBookmaker, setSelectedBookmaker] = useState(null);
-    const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+    const BACKEND_URL = 'https://nba-predictor-9f7k.onrender.com'
 
 
 // FETCH UPCOMING GAMES --------------------------------

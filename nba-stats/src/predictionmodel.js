@@ -15,8 +15,8 @@ function PredictionModel() {
     const [result, setResult] = useState()
     const [error, setError] = useState()
     const [loading, setLoading] = useState(false)
-    const apiKey = process.env.REACT_APP_API_KEY;
-    const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+    const apiKey = 'b7ff177dc6msh0354e8083416a13p185307jsndfdc4d061346'
+    const BACKEND_URL = 'https://nba-predictor-9f7k.onrender.com'
 
 
     const fetchPlayers = async () => {
@@ -240,7 +240,7 @@ return (
             fetchPlayers()
             setResult()
         }}>
-        Predict
+        Search
         </button>
 </div>
 
@@ -277,7 +277,9 @@ return (
     )}
 
 
-{error && <p style={{ color: "red" }}>Can't find player. Make sure spelling is correct</p>}
+{error && <p className='player-search-error'>
+  <strong>Oops!</strong> Having trouble finding player data. Try again later or try a different player. 
+  </p>}
 
 {result && (
     <div>
