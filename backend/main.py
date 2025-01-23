@@ -4,7 +4,7 @@ from model import teams, player_fetcher, stats_fetcher, games, odds_fetcher, pla
 from player_recents import get_player_prediction, search_players
 
 app = Flask("__name__")
-CORS(app)
+
 
 FRONTEND_DOMAIN = "https://hoopscope.netlify.app"
 
