@@ -19,7 +19,7 @@ function Odds() {
     useEffect(() => {
 
         async function fetchGames() {
-          const response = await fetch("http://127.0.0.1:5000/games")
+          const response = await fetch("https://nba-predictor-9f7k.onrender.com/games")
           const data = await response.json()
           // console.log(data)
           setGames(Object.entries(data).map(([name, id]) => ({ name, id })))
@@ -29,7 +29,7 @@ function Odds() {
 
 // FETCH UPCOMING GAMES PROP ODDS --------------------------------
       async function fetchGameOdds(oddsId, marketId) {
-        const response = await fetch(`http://127.0.0.1:5000/odds?odds_id=${oddsId}&market_id=${marketId}`)
+        const response = await fetch(`https://nba-predictor-9f7k.onrender.com/odds?odds_id=${oddsId}&market_id=${marketId}`)
         const data = await response.json()
 
         const formattedGameOdds = Object.entries(data).map(([bookmaker, lines]) => ({
@@ -45,7 +45,7 @@ function Odds() {
 
 // FETCH UPCOMING PLAYER PROPS --------------------------------
       async function fetchPlayerProps(oddsId, playerPropMarket) {
-        const response = await fetch(`http://127.0.0.1:5000/playerprops?odds_id=${oddsId}&player_prop_market=${playerPropMarket}`)
+        const response = await fetch(`https://nba-predictor-9f7k.onrender.com/playerprops?odds_id=${oddsId}&player_prop_market=${playerPropMarket}`)
         const data = await response.json()
         
         const formattedProps = Object.entries(data).map(([bookmaker, markets]) => ({bookmaker,

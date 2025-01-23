@@ -81,6 +81,49 @@ body {
     background-color: #00A1E4; 
     color: #121212; 
   }
+
+  /* Player Option container */
+.player-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+/* Individual Player Option */
+.player-option {
+  background-color: #333;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: center;
+  width: 150px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+/* Hover Effect */
+.player-option:hover {
+  background-color: #58a6ff; /* Light Blue */
+  transform: translateY(-5px); /* Lift Effect */
+}
+
+/* Active/Selected State */
+.player-option.selected {
+  background-color: #58a6ff;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+}
+
+/* Mobile friendly, adjust for smaller screens */
+@media (max-width: 768px) {
+  .player-option {
+      width: 120px; /* Adjust size on smaller screens */
+      padding: 10px 20px;
+  }
+}
+
   
 
 /* Loading container --------------------------------*/

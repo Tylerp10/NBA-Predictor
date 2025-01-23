@@ -14,7 +14,7 @@ function Players() {
   useEffect(() => {
 
     async function fetchTeams() {
-      const response = await fetch("http://127.0.0.1:5000/teams")
+      const response = await fetch("https://nba-predictor-9f7k.onrender.com/teams")
       const data = await response.json()
       // console.log(data)
       setTeams(Object.entries(data).map(([name, id]) => ({ name, id })))
@@ -23,13 +23,13 @@ function Players() {
   }, [])
 
   async function fetchRoster(teamId) {
-    const response = await fetch(`http://127.0.0.1:5000/rosters?team_id=${teamId}`)
+    const response = await fetch(`https://nba-predictor-9f7k.onrender.com/rosters?team_id=${teamId}`)
     const data = await response.json()
     setRoster(Object.entries(data).map(([name, id]) => ({name, id})))
   }
 
   async function fetchStats(playerId) {
-    const response = await fetch(`http://127.0.0.1:5000/averages?player_id=${playerId}`)
+    const response = await fetch(`https://nba-predictor-9f7k.onrender.com/averages?player_id=${playerId}`)
     const data = await response.json()
     const filteredStats = [
       {name: "Points", value: data.points},

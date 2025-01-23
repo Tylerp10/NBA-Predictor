@@ -3,57 +3,112 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios'
 import { Box, Paper, CircularProgress, TableRow, TableHead, TableContainer, Table, TableCell, TableBody } from "@mui/material";
+import teamDictionary from './teamcodes';
 
 
 
 function PredictionModel() {
 
     const [playerName, setPlayerName] = useState()
+    const [players, setPlayers] = useState([])
+    const [selectedPlayer, setSelectedPlayer] = useState(null);
     const [result, setResult] = useState()
     const [error, setError] = useState()
     const [loading, setLoading] = useState(false)
+    const apiKey = process.env.REACT_APP_API_KEY;
 
 
-    const fetchPrediction = async () => {
-        try {
+    const fetchPlayers = async () => {
+      try {
           setError("");
-          setLoading(true)
-          const response = await axios.get("http://localhost:5000/predict", {
-            params: { player_name: playerName },
+          setPlayers([]); // Clear previous results
+          setLoading(true);
+  
+          const response = await axios.get("https://api-nba-v1.p.rapidapi.com/players", {
+              params: { search: playerName }, 
+              headers: { "x-rapidapi-key": apiKey, "x-rapidapi-host": "api-nba-v1.p.rapidapi.com" }
+          });
+  
+          if (response.data?.response?.length > 0) {
+              setPlayers(response.data.response); // Store players list
+          } else {
+              setError("No players found");
+          }
+      } catch (err) {
+          setError("Error fetching players");
+      } finally {
+          setLoading(false);
+      }
+  };
+
+    const fetchPrediction = async (player) => {
+      if (!player) {
+          setError("Please select a player");
+          return;
+      }
+  
+      try {
+          setError("");
+          setLoading(true);
+          setSelectedPlayer(player)
+          const response = await axios.get("https://nba-predictor-9f7k.onrender.com/predict", {
+              params: { player_id: player.id }, 
           });
           setResult(response.data);
-        } catch (err) {
+      } catch (err) {
           setError(err.response?.data?.error || "An error occurred");
-        } finally {
-            setLoading(false)
-        }
-      };
-      console.log(result)
+      } finally {
+          setLoading(false);
+      }
+  };
 
+    const handlePlayerSelect = (player) => {
+      setSelectedPlayer(player);  
+      setResult(null);            
+      fetchPrediction(player);    
+    };
+
+  
+      console.log(result)
       function createData(matchup, date, wl, reb, ast, pts) {
         return { matchup, date, wl, reb, ast, pts };
       }
+      
       const createRows = () => {
-        if (!result?.recent_performance || result.recent_performance.length === 0) {
+        if (!result?.recent_games || result.recent_games.length === 0) {
           return []; 
         }
-    
-        return result.recent_performance.map((performance) =>
+      
+        return result.recent_games.slice().reverse().map((game) =>
           createData(
-            performance.MATCHUP || "",
-            performance.GAME_DATE || "",
-            performance.WL || "Underway",
-            performance.REB || "0",
-            performance.AST || "0",
-            performance.PTS || "0"
+            `${game.opponent}`,
+            formatDate(game.game_date.slice(0,10)) || "", 
+            game.result || "Underway",  
+            game.rebounds || "0", 
+            game.assists || "0",  
+            game.points || "0"  
           )
         );
       };
-    
+      
       const rows = createRows();
-      const pointsArray = result?.recent_performance?.map((game) => Number(game.PTS)) || [];
+      const pointsArray = result?.recent_games?.map((game) => Number(game.points)) || [];
       const averagePointsArray = pointsArray[0]+pointsArray[1]+pointsArray[2]+pointsArray[3]+pointsArray[4]
       const averagePoints = averagePointsArray/5
+
+      function getTeamName(teamCode) {
+        return teamDictionary[teamCode] || teamCode; 
+      }
+
+      function formatDate(dateString) {
+        const date = new Date(dateString);
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const month = months[date.getMonth()];
+        const day = date.getDate();
+        
+        return `${month} ${day}`;
+      }
+      
 
 return (
     <div className='background'>
@@ -159,7 +214,7 @@ return (
         <span style={{ fontWeight: 'bold', fontSize: '1.2rem', color: '#2e9cca' }}> Welcome To The Point Predictor! </span> 
         When predicting player performance, two key factors stand out: recent performance trends and the strength of the upcoming opponent. We leveraged these variables to design our software, which uses this data to generate a highly accurate, mathematically-driven estimate of a player's likely next performance.
         <br /><br />
-        <span style={{ color: '#2e9cca', fontSize: '1.1rem' }}>Give It A Try! </span> Start by searching for a player, making sure to spell their name with proper grammar, i.e. 'LeBron James' or 'Shai Gilgeous-Alexander'. Search results will include the player's stats from their last 5 games, their next opponent, and what our program has predicted they might score.
+        <span style={{ color: '#2e9cca', fontSize: '1.1rem' }}>Give It A Try! </span> Start by searching for a players last name, and select your designated player to que the predictions. Search results will include the player's stats from their last 5 games, their next opponent, and what our program has predicted they might score. NOTE: if too close to game time, the program will use the next game to base its prediction off, keep an eye on the date.
         <br /><br />
         If you're using this for betting purposes, we recommend visiting our Odds Hub afterward to find the betting site offering the best value based on our predictor's suggestions. Additionally, we advise applying a 2-3 point buffer to the predicted number for greater flexibility.
         <br /><br />
@@ -181,12 +236,29 @@ return (
       <button
         className='search-button' 
         onClick={() => {
-            fetchPrediction()
+            fetchPlayers()
             setResult()
         }}>
         Predict
         </button>
 </div>
+
+{/* Display player options */}
+{players.length > 0 && (
+    <div className="player-list">
+        {players.map((player) => (
+            <div 
+                key={player.id} 
+                className={`player-option ${selectedPlayer?.id === player.id ? 'selected' : ''}`}  
+                onClick={() => handlePlayerSelect(player)}
+            >
+                {player.firstname} {player.lastname}
+            </div>
+        ))}
+    </div>
+)}
+
+
 
 {/* LOADER */}
 {loading && (
@@ -359,7 +431,7 @@ return (
         textAlign: 'center',
       }}
     >
-      <p>Next Opponent: {result.next_opponent} on {result.game_date.slice(0, -6)}</p>
+      <p>Next Opponent: {getTeamName(result.next_opponent)} on {formatDate(result.next_opponent_date.slice(0,10))}</p>
     </Box>
 
     <Box
@@ -376,7 +448,7 @@ return (
         textAlign: 'center',
       }}
     >
-      <p>{result.next_opponent} allows {Math.round(result.opponent_allowed_points)} points per game</p>
+      <p>{getTeamName(result.next_opponent)} allows {Math.round(result.opponent_allowed_ppg)} points per game</p>
     </Box>
 
     <Box
@@ -393,7 +465,7 @@ return (
         textAlign: 'center',
       }}
   >
-    <p>{result.player_name} averaged {averagePoints.toFixed(1)}pts in his last 5 games</p>
+    <p>{selectedPlayer.firstname} {selectedPlayer.lastname} averaged {averagePoints.toFixed(1)}pts in his last 5 games</p>
   </Box>
 
   <Box

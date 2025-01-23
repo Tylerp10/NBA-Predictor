@@ -1,12 +1,12 @@
 from flask import jsonify, Flask, request
 from flask_cors import CORS
 from model import teams, player_fetcher, stats_fetcher, games, odds_fetcher, player_props_fetcher
-from player_recents import get_player_prediction
+from player_recents import get_player_prediction, search_players
 
 app = Flask("__name__")
 CORS(app)
 
-FRONTEND_DOMAIN = "https://hoopscope.ca"
+FRONTEND_DOMAIN = "https://hoopscope.netlify.app"
 
 CORS(app, resources={r"/*": {"origins": FRONTEND_DOMAIN}})
 
@@ -70,14 +70,22 @@ def player_props():
     return player_props_fetcher(odds_id, player_prop_market)
 
 
+@app.route('/search', methods=['GET'])
+def get_players():
+    last_name = request.args.get('last_name')
+    if not last_name:
+        return jsonify({"Error": 'Odds ID required'})
+    
+    return search_players(last_name)
+
 
 @app.route('/predict', methods=['GET'])
 def prediction():
-    player_name = request.args.get('player_name')
-    if not player_name:
-        return jsonify({"Error": 'Odds ID required'})
+    player_id = request.args.get('player_id')
+    if not player_id:
+        return jsonify({"Error": 'Player ID required'})
 
-    return get_player_prediction(player_name)
+    return get_player_prediction(player_id)
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=10000)

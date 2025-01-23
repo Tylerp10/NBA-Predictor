@@ -1,14 +1,34 @@
 import requests
-from datetime import datetime, UTC
+from datetime import datetime, UTC, timedelta, timezone
 import pytz
 from sklearn.linear_model import LinearRegression
 import numpy as np
+import os
 from flask import jsonify
-# API headers
+from dotenv import load_dotenv
+
+load_dotenv()
+
+sports_data_api = os.getenv("SPORTS_DATA_API")
+nba_rapid_api =os.getenv("NBA_RAPID_API")
+
 headers = {
-    "x-rapidapi-key": "b7ff177dc6msh0354e8083416a13p185307jsndfdc4d061346",
+    "x-rapidapi-key": nba_rapid_api,
     "x-rapidapi-host": "api-nba-v1.p.rapidapi.com"
 }
+
+def search_players(last_name):
+
+    url = "https://api-nba-v1.p.rapidapi.com/players"
+    response = requests.get(url, headers=headers, params={"search": last_name})
+    player_data = response.json().get('response', [])
+
+    if not player_data:
+        return jsonify({"error": f"No players found for '{last_name}'"}), 404
+
+    players = [{"id": p["id"], "name": f"{p['firstname']} {p['lastname']}"} for p in player_data]
+    
+    return jsonify(players)
 
 def get_player_team_code(player_id):
     """ Get the team code of a player based on their ID """
@@ -17,11 +37,15 @@ def get_player_team_code(player_id):
     
     response = requests.get(url, headers=headers, params=querystring)
     data = response.json()
-    
+
     # Safely access 'response' key and extract the team code
     games = data.get("response", [])
+    
     if games:
-        return games[0]['team'].get('code', None)
+        # Ensure that the 'team' key exists before trying to access its properties
+        team = games[0].get('team')
+        if team:
+            return team.get('code', None)
     return None
 
 def get_team_id(team_name):
@@ -29,7 +53,7 @@ def get_team_id(team_name):
     url = "https://nba-results-pro.p.rapidapi.com/nba/teams"
 
     response = requests.get(url, headers = {
-	"x-rapidapi-key": "b7ff177dc6msh0354e8083416a13p185307jsndfdc4d061346",
+	"x-rapidapi-key": nba_rapid_api,
 	"x-rapidapi-host": "nba-results-pro.p.rapidapi.com"
 })
     data = response.json()
@@ -44,14 +68,7 @@ def get_team_id(team_name):
     
     return team_dict.get(team_name, None)
 
-def get_player_prediction(player_name):
-    """ Get player prediction by analyzing their recent games and next opponent """
-    
-    # Get Player ID
-    url = "https://api-nba-v1.p.rapidapi.com/players"
-    response = requests.get(url, headers=headers, params={"search": player_name})
-    player_data = response.json()
-    player_id = player_data['response'][0]['id']
+def get_player_prediction(player_id):
     
     # Get Recent Game Stats
     url = "https://api-nba-v1.p.rapidapi.com/players/statistics"
@@ -61,24 +78,41 @@ def get_player_prediction(player_name):
     
     player_stats = []
     recent_points = []
-    
     for game in games:
         game_id = game['game']['id']
-        game_response = requests.get("https://api-nba-v1.p.rapidapi.com/games", headers=headers, params={"id": game_id})
-        game_info = game_response.json().get("response", [{}])[0]
+        game_response = requests.get(
+            "https://api-nba-v1.p.rapidapi.com/games", headers=headers, params={"id": game_id}
+        )
+
+        # Ensure API response contains expected structure
+        game_json = game_response.json()
+        if not game_json or "response" not in game_json or not game_json["response"]:
+            print(f"Warning: Empty or missing 'response' in game data for game ID {game_id}")
+            print("Full API response:", game_json)  # Debugging
+            continue  # Skip this game
         
-        # Extract home and away teams safely
-        home_team = game_info.get('teams', {}).get('home', {})
-        away_team = game_info.get('teams', {}).get('visitors', {})
+        game_info = game_json["response"][0]  # Extract first game
+
+        # Ensure 'teams' data exists
+        teams = game_info.get("teams")
+        if not teams or "home" not in teams or "visitors" not in teams:
+            print(f"Warning: Missing 'teams' in game data for game ID {game_id}")
+            print("Full game response:", game_info)  # Debugging
+            continue  # Skip this game
         
-        home_team_id = home_team.get('id')
-        away_team_id = away_team.get('id')
-        
-        # Check if ids are valid
-        if home_team_id is None or away_team_id is None:
-            print("Error: Missing 'id' in home or away team data.")
-            continue
-        
+        home_team = teams.get("home", {})
+        away_team = teams.get("visitors", {})
+
+        # Ensure both home and away teams have an ID
+        home_team_id = home_team.get("id")
+        away_team_id = away_team.get("id")
+
+        if not home_team_id or not away_team_id:
+            print(f"Warning: Missing 'id' in home or away team for game ID {game_id}")
+            print("Full team data:", teams)  # Debugging
+            continue  # Skip this game.
+
+
         # Determine opponent
         opponent = home_team['nickname'] if away_team_id == game['team']['id'] else away_team['nickname']
         
@@ -87,7 +121,7 @@ def get_player_prediction(player_name):
         game_date = pytz.utc.localize(game_date).astimezone(pytz.timezone('America/Los_Angeles')).strftime('%Y-%m-%d %H:%M:%S')
         
         # Calculate result
-        result = "Win" if game_info['scores']['home']['points'] > game_info['scores']['visitors']['points'] else "Loss"
+        result = "W" if game_info['scores']['home']['points'] > game_info['scores']['visitors']['points'] else "L"
         
         # Save the stats
         stats = {
@@ -109,15 +143,21 @@ def get_player_prediction(player_name):
         print("Error: Could not retrieve team name.")
         return None
     
-    sportsdata_headers = {"Ocp-Apim-Subscription-Key": "e66cbb3731f14beda2b155087756ad48"}
+    sportsdata_headers = {"Ocp-Apim-Subscription-Key": sports_data_api}
     response = requests.get("https://api.sportsdata.io/v3/nba/scores/json/Games/2025", headers=sportsdata_headers)
     games = response.json()
     
-    today = datetime.now(UTC)
-    next_game = next(
-        (game for game in games if datetime.strptime(game.get("Day"), "%Y-%m-%dT%H:%M:%S").replace(tzinfo=UTC) > today and
-         (game["HomeTeam"] == team_name or game["AwayTeam"] == team_name)), None)
-    
+    today = datetime.now(timezone.utc)
+    buffer_time = timedelta(hours=2)
+    next_game = None 
+    for game in games:
+        game_time = datetime.strptime(game.get("Day"), "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc)
+        
+        if game["HomeTeam"] == team_name or game["AwayTeam"] == team_name:
+            if game_time > today - buffer_time:  
+                next_game = game
+                break
+
     if not next_game:
         print("Error: No upcoming games found for the team.")
         return None
@@ -132,7 +172,7 @@ def get_player_prediction(player_name):
         return None
     
     response = requests.get(f"https://nba-results-pro.p.rapidapi.com/nba/teams/{team_id}/season/information", headers= {
-	"x-rapidapi-key": "b7ff177dc6msh0354e8083416a13p185307jsndfdc4d061346",
+	"x-rapidapi-key": nba_rapid_api,
 	"x-rapidapi-host": "nba-results-pro.p.rapidapi.com"
     })
     allowed_ppg = response.json().get("points_allowed_per_game", 0)
@@ -159,7 +199,6 @@ def get_player_prediction(player_name):
     predicted_points = model.predict([prediction_input])[0]
     
     return jsonify({
-        "player_name": player_name,
         "recent_games": player_stats,
         "recent_points": recent_points,
         "next_opponent": next_opponent,
