@@ -21,7 +21,7 @@ function Players() {
       setTeams(Object.entries(data).map(([name, id]) => ({ name, id })))
     }    
     fetchTeams()
-  }, [])
+  }, [BACKEND_URL])
 
   async function fetchRoster(teamId) {
     const response = await fetch(`${BACKEND_URL}/rosters?team_id=${teamId}`)

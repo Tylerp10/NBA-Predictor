@@ -26,7 +26,7 @@ function Odds() {
           setGames(Object.entries(data).map(([name, id]) => ({ name, id })))
         }    
         fetchGames()
-      }, [])
+      }, [BACKEND_URL])
 
 // FETCH UPCOMING GAMES PROP ODDS --------------------------------
       async function fetchGameOdds(oddsId, marketId) {
