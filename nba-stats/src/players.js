@@ -10,11 +10,12 @@ function Players() {
   const [roster, setRoster] = useState([])
   const [selectedPlayer, setSelectedPlayer] = useState()
   const [stats, setStats] = useState([])
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
   useEffect(() => {
 
     async function fetchTeams() {
-      const response = await fetch("https://nba-predictor-9f7k.onrender.com/teams")
+      const response = await fetch(`${BACKEND_URL}/teams`)
       const data = await response.json()
       // console.log(data)
       setTeams(Object.entries(data).map(([name, id]) => ({ name, id })))
@@ -23,13 +24,13 @@ function Players() {
   }, [])
 
   async function fetchRoster(teamId) {
-    const response = await fetch(`https://nba-predictor-9f7k.onrender.com/rosters?team_id=${teamId}`)
+    const response = await fetch(`${BACKEND_URL}/rosters?team_id=${teamId}`)
     const data = await response.json()
     setRoster(Object.entries(data).map(([name, id]) => ({name, id})))
   }
 
   async function fetchStats(playerId) {
-    const response = await fetch(`https://nba-predictor-9f7k.onrender.com/averages?player_id=${playerId}`)
+    const response = await fetch(`${BACKEND_URL}/averages?player_id=${playerId}`)
     const data = await response.json()
     const filteredStats = [
       {name: "Points", value: data.points},

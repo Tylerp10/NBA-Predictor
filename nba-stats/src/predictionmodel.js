@@ -16,6 +16,7 @@ function PredictionModel() {
     const [error, setError] = useState()
     const [loading, setLoading] = useState(false)
     const apiKey = process.env.REACT_APP_API_KEY;
+    const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
 
     const fetchPlayers = async () => {
@@ -51,7 +52,7 @@ function PredictionModel() {
           setError("");
           setLoading(true);
           setSelectedPlayer(player)
-          const response = await axios.get("https://nba-predictor-9f7k.onrender.com/predict", {
+          const response = await axios.get(`${BACKEND_URL}/predict`, {
               params: { player_id: player.id }, 
           });
           setResult(response.data);
