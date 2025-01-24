@@ -431,7 +431,7 @@ return (
         textAlign: 'center',
       }}
     >
-      <p>Next Opponent: {getTeamName(result.next_opponent)} on {formatGameDate(result.next_game_date)}</p>
+      <p>Next Opponent: {getTeamName(result.next_opponent)} on {formatGameDate(result.next_opponent_date)}</p>
     </Box>
 
     <Box
