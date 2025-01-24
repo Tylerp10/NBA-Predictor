@@ -170,7 +170,7 @@ def get_player_prediction(player_id):
     next_opponent_date = next_game["Day"]
     
     game_date = datetime.strptime(next_opponent_date, "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc)
-    game_date = game_date.astimezone(pytz.timezone('America/Los_Angeles')).date()
+    next_opponent_game_date = game_date.astimezone(pytz.timezone('America/Los_Angeles')).date()
 
     # GET OPPONENT ALLOWED PPG
     team_id = get_team_id(next_opponent)
@@ -208,7 +208,7 @@ def get_player_prediction(player_id):
     return jsonify({
         "recent_games": player_stats,
         "recent_points": recent_points,
-        "next_opponent": next_opponent,
+        "next_opponent": next_opponent_game_date,
         "next_opponent_date": next_opponent_date,
         "opponent_allowed_ppg": allowed_ppg,
         "predicted_points": predicted_points
