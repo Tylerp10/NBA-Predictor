@@ -169,6 +169,9 @@ def get_player_prediction(player_id):
     next_opponent = next_game["AwayTeam"] if next_game["HomeTeam"] == team_name else next_game["HomeTeam"]
     next_opponent_date = next_game["Day"]
     
+    game_date = datetime.strptime(next_opponent_date, "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc)
+    game_date = game_date.astimezone(pytz.timezone('America/Los_Angeles')).date()
+
     # GET OPPONENT ALLOWED PPG
     team_id = get_team_id(next_opponent)
     if not team_id:
