@@ -97,7 +97,6 @@ def get_player_prediction(player_id):
         
         home_team = teams.get("home", {})
         away_team = teams.get("visitors", {})
-
         home_team_id = home_team.get("id")
         away_team_id = away_team.get("id")
 
@@ -105,16 +104,29 @@ def get_player_prediction(player_id):
             print(f"Warning: Missing 'id' in home or away team for game ID {game_id}")
             continue 
 
-
         # GET OPPONENT PER GAME
         opponent = home_team['nickname'] if away_team_id == game['team']['id'] else away_team['nickname']
         
         # CONVERTING TIME
         game_date = datetime.strptime(game_info.get('date', {}).get('start', 'Unknown'), '%Y-%m-%dT%H:%M:%S.000Z')
-        game_date = pytz.utc.localize(game_date).astimezone(pytz.timezone('America/Los_Angeles')).strftime('%Y-%m-%d %H:%M:%S')
+        game_date = game_date.replace(tzinfo=UTC).astimezone(pytz.timezone('America/Los_Angeles')).date()
         
-        result = "W" if game_info['scores']['home']['points'] > game_info['scores']['visitors']['points'] else "L"
-        
+        # DETERIME RESULT OF EACH GAME 
+        home_team_points = game_info["scores"]["home"]["points"]
+        away_team_points = game_info["scores"]["visitors"]["points"]
+
+        player_team_id = game["team"]["id"]
+        home_team_id = game_info["teams"]["home"]["id"]
+        away_team_id = game_info["teams"]["visitors"]["id"]
+
+        if "status" in game_info and game_info["status"]["long"] != "Finished":
+            result = "Underway"
+        else:
+            if player_team_id == home_team_id:
+                result = "W" if home_team_points > away_team_points else "L"
+            else:
+                result = "W" if away_team_points > home_team_points else "L"
+
         # PLAYER STATS OBJECT 
         stats = {
             "points": game.get("points", 0),

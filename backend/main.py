@@ -8,7 +8,7 @@ app = Flask("__name__")
 
 FRONTEND_DOMAIN = "https://hoopscope.ca"
 
-CORS(app, resources={r"/*": {"origins": FRONTEND_DOMAIN}})
+CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
 
 # TEAMS DATA-------------------------------------------
 @app.route('/teams', methods=['GET'])

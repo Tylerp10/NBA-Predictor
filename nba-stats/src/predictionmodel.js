@@ -383,7 +383,7 @@ return (
           <TableCell
             align="center"
             sx={{
-              color: row.wl === 'W' ? 'green' : 'red', //
+              color: row.wl === 'W' ? 'green' : row.wl === 'Underway' ? 'white' : 'red',
               fontWeight: 'bold',
               fontSize: '0.9rem',
               borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
