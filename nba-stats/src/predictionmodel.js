@@ -83,7 +83,7 @@ function PredictionModel() {
         return result.recent_games.slice().reverse().map((game) =>
           createData(
             `${game.opponent}`,
-            formatDate(game.game_date.slice(0,10)) || "", 
+            game.game_date.slice(0,11) || "", 
             game.result || "Underway",  
             game.rebounds || "0", 
             game.assists || "0",  
@@ -101,15 +101,12 @@ function PredictionModel() {
         return teamDictionary[teamCode] || teamCode; 
       }
 
-      function formatDate(dateString) {
-        const date = new Date(dateString);
-        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        const month = months[date.getMonth()];
-        const day = date.getDate();
+      function formatGameDate(dateStr) {
+        const date = new Date(dateStr);
         
-        return `${month} ${day}`;
-      }
-      
+        const options = { weekday: 'short', month: 'short', day: 'numeric' };
+        return date.toLocaleDateString('en-US', options);
+    }
 
 return (
     <div className='background'>
@@ -434,7 +431,7 @@ return (
         textAlign: 'center',
       }}
     >
-      <p>Next Opponent: {getTeamName(result.next_opponent)} on {formatDate(result.next_opponent_date.slice(0,10))}</p>
+      <p>Next Opponent: {getTeamName(result.next_opponent)} on {formatGameDate(result.next_game_date)}</p>
     </Box>
 
     <Box

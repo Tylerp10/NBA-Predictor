@@ -9,8 +9,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-sports_data_api = os.getenv("SPORTS_DATA_API")
-nba_rapid_api =os.getenv("NBA_RAPID_API")
+sports_data_api = 'e66cbb3731f14beda2b155087756ad48'
+nba_rapid_api ='b7ff177dc6msh0354e8083416a13p185307jsndfdc4d061346'
 
 headers = {
     "x-rapidapi-key": nba_rapid_api,
@@ -151,26 +151,26 @@ def get_player_prediction(player_id):
     games = response.json()
     
     today = datetime.now(timezone.utc)
-    buffer_time = timedelta(hours=2)
+    # buffer_time = timedelta(hours=2)
     next_game = None 
     for game in games:
         game_time = datetime.strptime(game.get("Day"), "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc)
         
         if game["HomeTeam"] == team_name or game["AwayTeam"] == team_name:
-            if game_time > today - buffer_time:  
+            if game_time > today: 
                 next_game = game
                 break
 
     if not next_game:
         print("Error: No upcoming games found for the team.")
         return None
-    
+
     # GET NEXT GAME DATE 
     next_opponent = next_game["AwayTeam"] if next_game["HomeTeam"] == team_name else next_game["HomeTeam"]
     next_opponent_date = next_game["Day"]
-    
-    game_date = datetime.strptime(next_opponent_date, "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc)
-    next_opponent_game_date = game_date.astimezone(pytz.timezone('America/Los_Angeles')).date()
+    next_game_date = next_opponent_date[:10]
+
+    print(f"Next game date for {next_opponent}: {next_game_date}")
 
     # GET OPPONENT ALLOWED PPG
     team_id = get_team_id(next_opponent)
@@ -209,8 +209,7 @@ def get_player_prediction(player_id):
         "recent_games": player_stats,
         "recent_points": recent_points,
         "next_opponent": next_opponent,
-        "next_opponent_date": next_opponent_game_date,
+        "next_opponent_date": next_game_date,
         "opponent_allowed_ppg": allowed_ppg,
         "predicted_points": predicted_points
     })
-
