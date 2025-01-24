@@ -16,7 +16,7 @@ headers = {
     "x-rapidapi-key": nba_rapid_api,
     "x-rapidapi-host": "api-nba-v1.p.rapidapi.com"
 }
-
+# GET PLAYER RESULTS------------------------------------------------
 def search_players(last_name):
 
     url = "https://api-nba-v1.p.rapidapi.com/players"
@@ -30,6 +30,7 @@ def search_players(last_name):
     
     return jsonify(players)
 
+# GET TEAM FROM PLAYER ID------------------------------------------------
 def get_player_team_code(player_id):
     """ Get the team code of a player based on their ID """
     url = "https://api-nba-v1.p.rapidapi.com/players/statistics"
@@ -38,16 +39,16 @@ def get_player_team_code(player_id):
     response = requests.get(url, headers=headers, params=querystring)
     data = response.json()
 
-    # Safely access 'response' key and extract the team code
+
     games = data.get("response", [])
     
     if games:
-        # Ensure that the 'team' key exists before trying to access its properties
         team = games[0].get('team')
         if team:
             return team.get('code', None)
     return None
 
+# GET TEAM ID FROM TEAM NAME------------------------------------------------
 def get_team_id(team_name):
     """ Get the team ID based on team abbreviation """
     url = "https://nba-results-pro.p.rapidapi.com/nba/teams"
@@ -58,24 +59,23 @@ def get_team_id(team_name):
 })
     data = response.json()
     
-    # Ensure 'teams' exists in the response
     teams = data.get("teams", [])
     if not teams:
-        raise ValueError(f"Error: Missing 'teams' in API response.")
+        print(f"Error: Missing 'teams' in API response.")
     
-    # Create a mapping of team abbreviation to team_id
     team_dict = {team.get("team_abbreviation"): team.get("team_id") for team in teams}
     
     return team_dict.get(team_name, None)
 
+# GET PREDICTION------------------------------------------------
 def get_player_prediction(player_id):
     
-    # Get Recent Game Stats
     url = "https://api-nba-v1.p.rapidapi.com/players/statistics"
     response = requests.get(url, headers=headers, params={"id": player_id, "season": "2024"})
     data = response.json()
-    games = data.get("response", [])[-5:]  # Get last 5 games
+    games = data.get("response", [])[-5:] 
     
+    # GET RECENT PLAYER STATS 
     player_stats = []
     recent_points = []
     for game in games:
@@ -84,46 +84,38 @@ def get_player_prediction(player_id):
             "https://api-nba-v1.p.rapidapi.com/games", headers=headers, params={"id": game_id}
         )
 
-        # Ensure API response contains expected structure
         game_json = game_response.json()
         if not game_json or "response" not in game_json or not game_json["response"]:
-            print(f"Warning: Empty or missing 'response' in game data for game ID {game_id}")
-            print("Full API response:", game_json)  # Debugging
-            continue  # Skip this game
+            continue  
         
-        game_info = game_json["response"][0]  # Extract first game
+        game_info = game_json["response"][0] 
 
-        # Ensure 'teams' data exists
         teams = game_info.get("teams")
         if not teams or "home" not in teams or "visitors" not in teams:
             print(f"Warning: Missing 'teams' in game data for game ID {game_id}")
-            print("Full game response:", game_info)  # Debugging
-            continue  # Skip this game
+            continue 
         
         home_team = teams.get("home", {})
         away_team = teams.get("visitors", {})
 
-        # Ensure both home and away teams have an ID
         home_team_id = home_team.get("id")
         away_team_id = away_team.get("id")
 
         if not home_team_id or not away_team_id:
             print(f"Warning: Missing 'id' in home or away team for game ID {game_id}")
-            print("Full team data:", teams)  # Debugging
-            continue  # Skip this game.
+            continue 
 
 
-        # Determine opponent
+        # GET OPPONENT PER GAME
         opponent = home_team['nickname'] if away_team_id == game['team']['id'] else away_team['nickname']
         
-        # Convert game start date to LA timezone
+        # CONVERTING TIME
         game_date = datetime.strptime(game_info.get('date', {}).get('start', 'Unknown'), '%Y-%m-%dT%H:%M:%S.000Z')
         game_date = pytz.utc.localize(game_date).astimezone(pytz.timezone('America/Los_Angeles')).strftime('%Y-%m-%d %H:%M:%S')
         
-        # Calculate result
         result = "W" if game_info['scores']['home']['points'] > game_info['scores']['visitors']['points'] else "L"
         
-        # Save the stats
+        # PLAYER STATS OBJECT 
         stats = {
             "points": game.get("points", 0),
             "rebounds": game.get("totReb", 0),
@@ -133,11 +125,10 @@ def get_player_prediction(player_id):
             "game_date": game_date,
             "result": result
         }
-        
         player_stats.append(stats)
         recent_points.append(game.get("points", 0))
     
-    # Get Next Opponent
+    # GET NEXT OPPONENT
     team_name = get_player_team_code(player_id)
     if not team_name:
         print("Error: Could not retrieve team name.")
@@ -162,10 +153,11 @@ def get_player_prediction(player_id):
         print("Error: No upcoming games found for the team.")
         return None
     
+    # GET NEXT GAME DATE 
     next_opponent = next_game["AwayTeam"] if next_game["HomeTeam"] == team_name else next_game["HomeTeam"]
     next_opponent_date = next_game["Day"]
     
-    # Get Opponent Allowed PPG
+    # GET OPPONENT ALLOWED PPG
     team_id = get_team_id(next_opponent)
     if not team_id:
         print(f"Error: Could not find team ID for {next_opponent}")
@@ -177,7 +169,7 @@ def get_player_prediction(player_id):
     })
     allowed_ppg = response.json().get("points_allowed_per_game", 0)
     
-    # Predict Points using a simple linear regression model
+    # TRAIN THE ML MODEL
     X = np.array([
         [25, 28, 22, 24, 30, 112],
         [15, 18, 12, 20, 22, 105],

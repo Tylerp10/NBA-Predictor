@@ -1,12 +1,12 @@
 from flask import jsonify, Flask, request
 from flask_cors import CORS
-from model import teams, player_fetcher, stats_fetcher, games, odds_fetcher, player_props_fetcher
-from player_recents import get_player_prediction, search_players
+from nbadata import teams, player_fetcher, stats_fetcher, games, odds_fetcher, player_props_fetcher
+from prediction_model import get_player_prediction, search_players
 
 app = Flask("__name__")
 
 
-FRONTEND_DOMAIN = "https://hoopscope.app"
+FRONTEND_DOMAIN = "https://hoopscope.ca"
 
 CORS(app, resources={r"/*": {"origins": FRONTEND_DOMAIN}})
 

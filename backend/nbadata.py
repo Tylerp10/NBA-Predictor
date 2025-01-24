@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
+# GET TEAMS------------------------------------------------
 nba_teams = ["76ers", "Bucks", "Bulls", "Cavaliers", "Clippers", "Celtics", "Grizzlies", "Hawks", "Heat", "Hornets", "Jazz", "Kings", "Knicks", "Lakers", "Magic", "Mavericks", "Nets", "Nuggets", "Pacers", "Pelicans", "Pistons", "Raptors", "Rockets", "Suns", "Spurs", "Thunder", "Timberwolves", "Trail Blazers", "Warriors", "Wizards"]
 
 api_key = os.getenv("SPORTS_RADAR_KEY")
@@ -24,7 +24,7 @@ if response.status_code == 200:
 else:
     print("error")
 
-
+# GET PLAYERS------------------------------------------------
 def player_fetcher(team_id):
     api_key = os.getenv("SPORTS_RADAR_KEY")
     roster_url = f"https://api.sportradar.com/nba/trial/v8/en/teams/{team_id}/profile.json?api_key={api_key}"
@@ -41,7 +41,7 @@ def player_fetcher(team_id):
     else:
         return jsonify({"error": "Failed to fetch roster, {roster.status_code}"})
 
-
+# GET PLAYER AVERAGES------------------------------------------------
 def stats_fetcher(player_id):
     api_key = os.getenv("SPORTS_RADAR_KEY")
     url = f'https://api.sportradar.com/nba/trial/v8/en/players/{player_id}/profile.json?api_key={api_key}'
@@ -78,7 +78,7 @@ def stats_fetcher(player_id):
         return jsonify({"error": "Failed to fetch stats, {stats.status_code}"})
 
 
-
+# GET ODDS------------------------------------------------
 api = os.getenv("ODDS_KEY")
 
 events_url = f"https://api.the-odds-api.com/v4/sports/basketball_nba/events?apiKey={api}"
@@ -153,7 +153,7 @@ def odds_fetcher(odds_id, market_id):
     else:
         return jsonify(odds_response.status_code)
 
-
+# GET PLAYER PROP ODDS------------------------------------------------
 def player_props_fetcher(game_id, player_prop_market):
     api = os.getenv("ODDS_KEY")
 

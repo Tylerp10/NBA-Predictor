@@ -31,7 +31,7 @@ function PredictionModel() {
           });
   
           if (response.data?.response?.length > 0) {
-              setPlayers(response.data.response); // Store players list
+              setPlayers(response.data.response); 
           } else {
               setError("No players found");
           }
