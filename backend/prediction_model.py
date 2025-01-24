@@ -151,7 +151,7 @@ def get_player_prediction(player_id):
     games = response.json()
     
     today = datetime.now(timezone.utc)
-    # buffer_time = timedelta(hours=2)
+    # buffer_time =timedelta(hours=2)
     next_game = None 
     for game in games:
         game_time = datetime.strptime(game.get("Day"), "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc)
