@@ -102,9 +102,9 @@ function PredictionModel() {
       }
 
       function formatGameDate(dateStr) {
-        const date = new Date(dateStr);
-        
-        const options = { weekday: 'short', month: 'short', day: 'numeric' };
+        const date = new Date(dateStr + 'T00:00:00Z');
+    
+        const options = { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' };
         return date.toLocaleDateString('en-US', options);
     }
 

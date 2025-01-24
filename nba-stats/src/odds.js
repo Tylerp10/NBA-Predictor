@@ -156,9 +156,7 @@ function Odds() {
     <Box sx={{ padding: '20px' }}>
     {/* Game List */}
     <Box className="game-list">
-    {games
-        .filter(game => new Date(game.commence_time) >= new Date()) 
-        .map((game) => (
+        {games.map((game) => (
             <button
                 key={game.id}
                 className={`game-button ${selectedGame?.id === game.id ? 'selected-game' : ''}`}
@@ -170,10 +168,10 @@ function Odds() {
                     setCurrentPlayerMarket("player_points");
                 }}
             >
-                {game.home_team} vs {game.away_team}
+                {game.name}
             </button>
         ))}
-</Box>
+    </Box>
 
     {/* Game Details */}
     {selectedGame && (

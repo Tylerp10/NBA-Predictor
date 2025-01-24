@@ -168,7 +168,7 @@ def get_player_prediction(player_id):
     # GET NEXT GAME DATE 
     next_opponent = next_game["AwayTeam"] if next_game["HomeTeam"] == team_name else next_game["HomeTeam"]
     next_opponent_date = next_game["Day"]
-    next_game_date = next_opponent_date[:10]
+    next_game_date = str(next_opponent_date[:10])
 
     print(f"Next game date for {next_opponent}: {next_game_date}")
 
