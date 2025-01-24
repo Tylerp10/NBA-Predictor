@@ -208,8 +208,8 @@ def get_player_prediction(player_id):
     return jsonify({
         "recent_games": player_stats,
         "recent_points": recent_points,
-        "next_opponent": next_opponent_game_date,
-        "next_opponent_date": next_opponent_date,
+        "next_opponent": next_opponent,
+        "next_opponent_date": next_opponent_game_date,
         "opponent_allowed_ppg": allowed_ppg,
         "predicted_points": predicted_points
     })
