@@ -1,6 +1,9 @@
 from flask import jsonify, Flask, request
 from flask_cors import CORS
-from nbadata import teams, player_fetcher, stats_fetcher, games, odds_fetcher, player_props_fetcher
+import time
+import requests
+import os
+from nbadata import teams, player_fetcher, stats_fetcher, odds_fetcher, player_props_fetcher
 from prediction_model import get_player_prediction, search_players
 
 app = Flask("__name__")
@@ -10,7 +13,7 @@ FRONTEND_DOMAIN = "https://hoopscope.ca"
 
 CORS(app, resources={r"/*": {"origins": FRONTEND_DOMAIN}})
 
-# TEAMS DATA-------------------------------------------
+# # TEAMS DATA-------------------------------------------
 @app.route('/teams', methods=['GET'])
 def team_selector():
     return jsonify(teams)
@@ -38,7 +41,33 @@ def player_averages():
 #GAMES DATA----------------------------------------------
 @app.route('/games', methods=["GET"])
 def games_fetcher():
-    return jsonify(games)
+    api = os.getenv("ODDS_KEY")
+
+    events_url = f"https://api.the-odds-api.com/v4/sports/basketball_nba/events?apiKey={api}&_={int(time.time())}"
+    headers = {
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache"
+    }
+    response = requests.get(events_url, headers=headers)
+
+    if response.status_code == 200:
+        games_data = response.json()
+        games = {}
+
+        for game in games_data:
+            game_id = game["id"]
+            matchup = game["home_team"] + " vs " + game["away_team"]
+            games[matchup] = game_id      
+
+            resp = jsonify(games)
+            resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            resp.headers["Pragma"] = "no-cache"
+            resp.headers["Expires"] = "0"
+
+        return resp, 200
+    else:
+        return jsonify({"error": "Failed to fetch games", "status_code": response.status_code}), 500  
+
 
 #ODDS DATA----------------------------------------------
 @app.route('/odds', methods=['GET'])

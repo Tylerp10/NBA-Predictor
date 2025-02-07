@@ -80,25 +80,6 @@ def stats_fetcher(player_id):
 
 
 # GET ODDS------------------------------------------------
-api = os.getenv("ODDS_KEY")
-
-events_url = f"https://api.the-odds-api.com/v4/sports/basketball_nba/events?apiKey={api}&_={int(time.time())}"
-headers = {
-    "Cache-Control": "no-cache",
-    "Pragma": "no-cache"
-}
-response = requests.get(events_url, headers=headers)
-
-if response.status_code == 200:
-    games_data = response.json()
-    games = {}
-
-    for game in games_data:
-        game_id = game["id"]
-        matchup = game["home_team"] + " vs " + game["away_team"]
-        games[matchup] = game_id        
-else:
-    print(response.status_code)
 
 
 def odds_fetcher(odds_id, market_id):
